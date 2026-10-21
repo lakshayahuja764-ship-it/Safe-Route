@@ -1,324 +1,99 @@
+// main.cpp - menus only. All real work is done by EmergencyManager.
 #include <iostream>
-#include <string>
-#include <regex>
+#include "EmergencyManager.h"
+#include "Validation.h"
 using namespace std;
 
-// Check email format
-bool validEmail(string email)
+void showBanner()
 {
-    regex pattern(R"(^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$)");
-    return regex_match(email, pattern);
+    cout << "\n====================================\n";
+    cout << "        SAFEROUTE SOS\n";
+    cout << "====================================\n";
+    cout << "Academic prototype - NOT a real emergency service.\n";
+    cout << "Locations and facilities are predefined demo data.\n";
+    cout << "In a real emergency call 112 (India).\n";
 }
 
-// Check phone number: exactly 10 digits
-bool validPhone(string phone)
+void showUserMenu()
 {
-    if (phone.length() != 10)
-        return false;
-
-    for (int i = 0; i < phone.length(); i++)
-    {
-        if (phone[i] < '0' || phone[i] > '9')
-            return false;
-    }
-
-    return true;
+    cout << "\n====================================\n";
+    cout << "        SAFEROUTE MENU\n";
+    cout << "====================================\n";
+    cout << " 1. Add Emergency Contact\n";
+    cout << " 2. View Emergency Contacts\n";
+    cout << " 3. Search Contact\n";
+    cout << " 4. Delete Emergency Contact\n";
+    cout << " 5. Create SOS\n";
+    cout << " 6. Process Next SOS\n";
+    cout << " 7. View SOS History\n";
+    cout << " 8. Search SOS\n";
+    cout << " 9. View Emergency Facilities\n";
+    cout << "10. Search Emergency Facilities\n";
+    cout << "11. Find Nearby Facilities using BFS\n";
+    cout << "12. Find Shortest Route using Dijkstra\n";
+    cout << "13. Sort SOS Requests\n";
+    cout << "14. Undo Last SOS\n";
+    cout << "15. View Road Map (Graph)\n";
+    cout << "16. Logout\n";
 }
 
-// User class
-class User
+// Menu shown after a successful sign in. Returns when the user logs out.
+void userSession(EmergencyManager& manager)
 {
-private:
-    string name;
-    string username;
-    string email;
-    string password;
-
-public:
-
-    // Sign up
-    void signUp()
+    int choice = 0;
+    while (manager.isLoggedIn())
     {
-        cout << "\n===== SIGN UP =====\n";
+        showUserMenu();
+        choice = readNumber("Enter your choice (1-16): ", 1, 16);
 
-        cout << "Enter Name: ";
-        getline(cin >> ws, name);
-
-        cout << "Enter Username: ";
-        getline(cin >> ws, username);
-
-        // Validate email
-        do
+        switch (choice)
         {
-            cout << "Enter Email: ";
-            getline(cin >> ws, email);
-
-            if (!validEmail(email))
-                cout << "Invalid email! Enter a valid email address.\n";
-
-        } while (!validEmail(email));
-
-        // Password must contain at least 8 characters
-        do
-        {
-            cout << "Create Password (minimum 8 characters): ";
-            getline(cin >> ws, password);
-
-            if (password.length() < 8)
-                cout << "Password must be at least 8 characters long!\n";
-
-        } while (password.length() < 8);
-
-        cout << "\nAccount Created Successfully!\n";
-    }
-
-    // Sign in
-    bool signIn()
-    {
-        string enteredUsername;
-        string enteredPassword;
-
-        cout << "\n===== SIGN IN =====\n";
-
-        cout << "Enter Username: ";
-        getline(cin >> ws, enteredUsername);
-
-        cout << "Enter Password: ";
-        getline(cin >> ws, enteredPassword);
-
-        if (enteredUsername == username &&
-            enteredPassword == password)
-        {
-            cout << "\nLogin Successful!\n";
-            cout << "Welcome, " << name << "!\n";
-            return true;
+        case 1:  manager.addContact(); break;
+        case 2:  manager.viewContacts(); break;
+        case 3:  manager.searchContact(); break;
+        case 4:  manager.deleteContact(); break;
+        case 5:  manager.createSOS(); break;
+        case 6:  manager.processNextSOS(); break;
+        case 7:  manager.viewSOSHistory(); break;
+        case 8:  manager.searchSOS(); break;
+        case 9:  manager.viewFacilities(); break;
+        case 10: manager.searchFacilities(); break;
+        case 11: manager.nearbyFacilitiesBFS(); break;
+        case 12: manager.shortestRoute(); break;
+        case 13: manager.sortSOS(); break;
+        case 14: manager.undoLastSOS(); break;
+        case 15: manager.viewMap(); break;
+        case 16: manager.logout(); break;
         }
-
-        cout << "\nInvalid Username or Password!\n";
-        return false;
     }
-};
-
-
-// Contact class
-class Contact
-{
-private:
-    string name;
-    string phone;
-    string relation;
-
-public:
-
-    // Add emergency contact
-    void addContact()
-    {
-        cout << "\n===== ADD EMERGENCY CONTACT =====\n";
-
-        cout << "Enter Contact Name: ";
-        getline(cin >> ws, name);
-
-        // Validate phone number
-        do
-        {
-            cout << "Enter 10-digit Phone Number: ";
-            getline(cin >> ws, phone);
-
-            if (!validPhone(phone))
-                cout << "Invalid phone number! Enter exactly 10 digits.\n";
-
-        } while (!validPhone(phone));
-
-        cout << "Enter Relation: ";
-        getline(cin >> ws, relation);
-
-        cout << "\nContact Added Successfully!\n";
-    }
-
-    // Display contact
-    void display()
-    {
-        cout << "Name     : " << name << endl;
-        cout << "Phone    : " << phone << endl;
-        cout << "Relation : " << relation << endl;
-    }
-
-    // Get contact name
-    string getName()
-    {
-        return name;
-    }
-};
-
-
-// SOS class
-class SOS
-{
-public:
-
-    void createSOS()
-    {
-        string emergencyType;
-        string location;
-
-        cout << "\n===== CREATE SOS =====\n";
-
-        cout << "Enter Emergency Type: ";
-        getline(cin >> ws, emergencyType);
-
-        cout << "Enter Location: ";
-        getline(cin >> ws, location);
-
-        cout << "\nSOS Created Successfully!\n";
-        cout << "Emergency : " << emergencyType << endl;
-        cout << "Location  : " << location << endl;
-    }
-};
-
+}
 
 int main()
 {
-    User user;
-    SOS sos;
+    EmergencyManager manager;
+    showBanner();
 
-    Contact contacts[5];
-    int contactCount = 0;
-
-    string choice;
-
-    cout << "\n================================\n";
-    cout << "          SAFEROUTE SOS\n";
-    cout << "================================\n";
-
-    while (true)
+    int choice = 0;
+    while (choice != 3)
     {
-        cout << "\n===== MAIN MENU =====\n";
+        cout << "\nMAIN MENU\n";
         cout << "1. Sign Up\n";
         cout << "2. Sign In\n";
         cout << "3. Exit\n";
+        choice = readNumber("Enter your choice (1-3): ", 1, 3);
 
-        cout << "Enter choice: ";
-        getline(cin >> ws, choice);
-
-        if (choice == "1")
+        if (choice == 1)
         {
-            user.signUp();
+            manager.signUp();
         }
-        else if (choice == "2")
+        else if (choice == 2)
         {
-            if (user.signIn())
-            {
-                string option;
-
-                while (true)
-                {
-                    cout << "\n===== SAFEROUTE MENU =====\n";
-                    cout << "1. Add Emergency Contact\n";
-                    cout << "2. View Emergency Contacts\n";
-                    cout << "3. Delete Emergency Contact\n";
-                    cout << "4. Create SOS\n";
-                    cout << "5. Logout\n";
-
-                    cout << "Enter choice: ";
-                    getline(cin >> ws, option);
-
-                    // Add contact
-                    if (option == "1")
-                    {
-                        if (contactCount < 5)
-                        {
-                            contacts[contactCount].addContact();
-                            contactCount++;
-                        }
-                        else
-                        {
-                            cout << "\nMaximum 5 contacts allowed!\n";
-                        }
-                    }
-
-                    // View contacts
-                    else if (option == "2")
-                    {
-                        if (contactCount == 0)
-                        {
-                            cout << "\nNo emergency contacts found.\n";
-                        }
-                        else
-                        {
-                            for (int i = 0; i < contactCount; i++)
-                            {
-                                cout << "\nContact " << i + 1 << endl;
-                                contacts[i].display();
-                            }
-                        }
-                    }
-
-                    // Delete contact
-                    else if (option == "3")
-                    {
-                        if (contactCount == 0)
-                        {
-                            cout << "\nNo contacts to delete.\n";
-                        }
-                        else
-                        {
-                            string deleteName;
-                            bool found = false;
-
-                            cout << "Enter Contact Name to Delete: ";
-                            getline(cin >> ws, deleteName);
-
-                            for (int i = 0; i < contactCount; i++)
-                            {
-                                if (contacts[i].getName() == deleteName)
-                                {
-                                    for (int j = i; j < contactCount - 1; j++)
-                                    {
-                                        contacts[j] = contacts[j + 1];
-                                    }
-
-                                    contactCount--;
-                                    found = true;
-
-                                    cout << "\nContact Deleted Successfully!\n";
-                                    break;
-                                }
-                            }
-
-                            if (!found)
-                                cout << "\nContact Not Found!\n";
-                        }
-                    }
-
-                    // Create SOS
-                    else if (option == "4")
-                    {
-                        sos.createSOS();
-                    }
-
-                    // Logout
-                    else if (option == "5")
-                    {
-                        cout << "\nLogged out successfully!\n";
-                        break;
-                    }
-                    else
-                    {
-                        cout << "\nInvalid choice!\n";
-                    }
-                }
-            }
-        }
-        else if (choice == "3")
-        {
-            cout << "\nThank you for using SafeRoute SOS!\n";
-            break;
-        }
-        else
-        {
-            cout << "\nInvalid choice!\n";
+            if (manager.signIn())
+                userSession(manager);
         }
     }
 
+    cout << "Thank you for using SafeRoute SOS. Stay safe!\n";
     return 0;
 }
+
